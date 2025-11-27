@@ -1,0 +1,42 @@
+services:
+  mysql:
+    image: mysql:8
+    container_name: mysql-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 30407
+      MYSQL_DATABASE: polling_app
+    ports:
+      - "3307:3306"        # Workbench -> 3307
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  backend:
+    build:
+      context: ./Backend
+    container_name: backend-app
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/polling_app?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 30407
+      SERVER_PORT: 8081
+    depends_on:
+      - mysql
+    restart: always
+
+  frontend:
+    build:
+      context: ./Frontend
+    container_name: frontend-app
+    ports:
+      - "3000:80"
+    environment:
+      REACT_APP_API_BASE_URL: http://backend-app:8081/api   # IMPORTANT
+    depends_on:
+      - backend
+    restart: always
+
+volumes:
+  mysql_data:
